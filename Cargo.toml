@@ -1,0 +1,9 @@
+[package]
+name = "boiler"
+version = "1.0.0"
+
+[dependencies]
+toml = "0.4"
+serde = "1.0"
+serde_derive = "1.0"
+walkdir = "1"
