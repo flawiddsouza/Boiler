@@ -4,12 +4,12 @@ extern crate serde;
 extern crate walkdir;
 
 use std::fs::File;
+use std::io;
 use std::io::Read;
 use std::env;
 use std::collections::BTreeMap;
 use std::path::Path;
 use walkdir::WalkDir;
-use std::fs;
 use std::error::Error;
 use std::process;
 
@@ -104,14 +104,21 @@ fn boiler(arg: &String, boilerplates: &Vec<BTreeMap<String, String>>) {
                     for entry in WalkDir::new(&path).into_iter().filter_map(|e| e.ok()) {
                         if entry.path().is_file() {
                             println!("Boiler: Creating {:?}", entry.file_name());
-                            match File::create(entry.file_name()) {
+                            let mut writer = match File::create(entry.file_name()) {
                                 Err(err) => {
                                     println!("Boiler: Unable to create file: {}", err.description());
                                     process::exit(1);
                                 },
                                 Ok(result) => result,
                             };
-                            match fs::copy(entry.path(), entry.file_name()) {
+                            let mut reader = match File::open(entry.path()) {
+                                Err(err) => {
+                                    println!("Boiler: Unable to read boilerplate file: {}", err.description());
+                                    process::exit(1);
+                                },
+                                Ok(result) => result,
+                            };
+                            match io::copy(&mut reader, &mut writer) {
                                 Err(err) => {
                                     println!("Boiler: Unable to copy file: {}", err.description());
                                     process::exit(1);
